@@ -6,20 +6,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import javax.imageio.ImageIO;
-
 import graphics.Item;
 import graphics.tile.*;
+import graphics.sprite.*;
 
-public class Main 
+public class Main
 {	
 	public static int players = 1;
-	public static Map<String, BufferedImage> images = new HashMap<String, BufferedImage>(); // {"wall": BufferedImage(resources/wall.jpg), ...}
+	// {"wall": {"default": "wall.jpg", "broken": "brokenwall.jpg", ....},
+	//	"grass": {"default": "grass.jpg", ....},
+	//  ....
+	public static Map<String, Map<String, BufferedImage>> images = new HashMap<String, Map<String, BufferedImage>>();
 	public static ArrayList<Item> tl = new ArrayList<Item>(); // temporary variable
 	
 	@SuppressWarnings("unused")
 	public static void main(String[] args) {
 		loadResources();
-		loadSomeEnvironment();
 		MenuScreen ms = new MenuScreen();
 	}
 	
@@ -30,12 +32,23 @@ public class Main
 		}
 	}
 	
-	private static void loadResources() // very unclean: blama Java 
+	@SuppressWarnings("unchecked")
+	private static void loadResources() // fills the images field, see declaration for more info
 	{
+		Class<?>[] items = {WallTile.class, WallTile.class, PlayerSprite.class, MoneySprite.class};
 		try {
-			images.put("wall", ImageIO.read(new File("resources/wall.jpg")));
-			images.put("grass", ImageIO.read(new File("resources/grass.jpg")));
-			images.put("player", ImageIO.read(new File("resources/bomb.png")));
+			for (Class<?> i: items) {
+				Map<String, String> status_path = (Map<String, String>)i.getField("status_path").get(i);
+				Map<String, BufferedImage> status_image = new HashMap<String, BufferedImage>();
+				
+				for (Map.Entry<String,String> entry : status_path.entrySet()) {
+					String key = entry.getKey();
+					BufferedImage value = ImageIO.read(new File("resources/" + entry.getValue())); // entry.getValue is for ex "wall.jpg"
+					status_image.put(key, value);
+				}
+				String type = (String)i.getField("type").get(null);
+				images.put(type, status_image);
+			}
 		}
 		catch(Exception e) {e.printStackTrace();}
 	}

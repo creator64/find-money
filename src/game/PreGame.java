@@ -38,6 +38,7 @@ public class PreGame implements Serializable
 		loading = true; // this way players can see if the game still is loading (were not using it atm)
 		full = true;
 		this.mode.addPlayerSprites(this); // add the players to the environment
+		this.mode.addMoney(this);
 		System.out.println("Game " + gameId + " started");
 		loading = false; 
 	}

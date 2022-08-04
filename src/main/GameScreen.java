@@ -50,8 +50,8 @@ public class GameScreen extends JFrame implements Runnable
 			game = network.getGame();
 			if (!game.loading) {
 				running = true;
-				beginAnimation();
 				update();
+				beginAnimation();
 				Thread thread = new Thread(this); thread.start(); // will call a new thread doing the run function (start the game)
 				System.out.println("game started");
 				break;
@@ -61,6 +61,12 @@ public class GameScreen extends JFrame implements Runnable
 	
 	public void beginAnimation() {
 		// nth in here yet
+		// temporarily
+		for (Item i: game.ev.objectlist) {
+			if (i.getType() == "money") {
+				System.out.println("the money is at " + i.x + " , " + i.y);
+			}
+		}
 	}
 	
 	public void run() {
@@ -104,7 +110,7 @@ public class GameScreen extends JFrame implements Runnable
 		super.paint(g);
 
 		int xVis = you.x + you.width/2; int yVis = you.y + you.height/2; // visualize from the middle of our sprite
-		visualizeMap(xVis, yVis, 1, new GrassTile(), g);
+		visualizeMap(xVis, yVis, 0.75, new GrassTile(), g);
 		g.dispose();
 		bs.show();
 	}
@@ -139,6 +145,7 @@ public class GameScreen extends JFrame implements Runnable
 		 * g is just a Graphics instance with which we can draw on the screen
 		 */
 		if (bg != null) renderBackground(x, y, zoomlevel, new GrassTile(), g);
+		drawBorders(x, y, zoomlevel, g);
 		
 		//length_on_screen = length_on_map * widthRatio (* zoomlevel)
 		int screenWidth = getWidth(); int screenHeight = getHeight(); // the width and the height of the screen
@@ -168,6 +175,28 @@ public class GameScreen extends JFrame implements Runnable
 		}
 	}
 	
+	private void drawBorders(int x, int y, double zoomlevel, Graphics g) {
+		int leftBorder = 0, rightBorder = game.ev.width + you.width, upperBorder = 0, lowerBorder = game.ev.height + you.height;
+		int xMiddleScreen = getWidth() / 2, yMiddleScreen = getHeight() / 2;
+		int distanceLeft = x - leftBorder, distanceRight = x - rightBorder; // the distances to the border ON THE MAP
+		int distanceUp = y - upperBorder, distanceDown = y - lowerBorder;
+		
+		int screenDistanceLeft = mapLengthToScreenLength(distanceLeft, zoomlevel);
+		int screenDistanceRight = mapLengthToScreenLength(distanceRight, zoomlevel);
+		int screenDistanceUp = mapLengthToScreenLength(distanceUp, zoomlevel);
+		int screenDistanceDown = mapLengthToScreenLength(distanceDown, zoomlevel);
+		
+		// g.drawLine(x1, y1, x2, y2)
+		g.drawLine(xMiddleScreen - screenDistanceLeft, yMiddleScreen - screenDistanceUp, 
+				xMiddleScreen - screenDistanceLeft, yMiddleScreen - screenDistanceDown); // left border 
+		g.drawLine(xMiddleScreen - screenDistanceRight, yMiddleScreen - screenDistanceUp, 
+				xMiddleScreen - screenDistanceRight, yMiddleScreen - screenDistanceDown); // right border
+		g.drawLine(xMiddleScreen - screenDistanceLeft, yMiddleScreen - screenDistanceUp, 
+				xMiddleScreen - screenDistanceRight, yMiddleScreen - screenDistanceUp); // upper border
+		g.drawLine(xMiddleScreen - screenDistanceLeft, yMiddleScreen - screenDistanceDown, 
+				xMiddleScreen - screenDistanceRight, yMiddleScreen - screenDistanceDown); // lower border
+	}
+
 	public void printText(String s, int x, int y, Graphics g, float size) {
 		g.setFont(g.getFont().deriveFont(size));
 		int stringLen = (int)g.getFontMetrics().getStringBounds(s, g).getWidth();
